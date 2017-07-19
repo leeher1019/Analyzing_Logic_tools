@@ -1,0 +1,3 @@
+﻿if S_加速度 = 1 and S_电流 = 1 then H_加速度 = 1, H_电流 = 0;
+if S_电流 = 1 and S_上料 = 1 then H_电流 = 1, H_上料 = 1;
+if S_加速度 = 0 and S_电流 = 1 and S_上料 = 1 then H_加速度 = 0, H_电流 = 1, H_上料 = 1;

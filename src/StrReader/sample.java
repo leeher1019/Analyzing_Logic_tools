@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 import java.lang.reflect.Array;
@@ -30,7 +31,7 @@ public class sample {
 	public static void main(String[] args) throws Exception{
 		System.setProperty("java.home", "C:\\Program Files\\Java\\jdk1.8.0_131\\jre");
 		sample main = new sample();
-		main.readfile("D:\\CheFossetta\\PKU\\一下課程\\西門子\\test.txt");  //文件目录用双斜杠
+		main.readfile("D:\\CheFossetta\\PKU\\一下課程\\西門子\\test logic\\unit1.txt");  //文件目录用双斜杠
 		main.createParser();
 		main.dynamicCompile();
 	}
@@ -115,11 +116,13 @@ public class sample {
 		System.out.println("输入传感器数量");
 		int sensor = scan.nextInt();
 		ArrayList<String> sensorName = new ArrayList<String>();			//用来储存数据库table的属性名称
+		HashMap<String, String> hmSensorName = new HashMap<String, String>();
 		
 		//储存数据库table属性名称
-		for (int i = 0; i < sensor; i++){								
-			System.out.println("请输入第" + (i + 1) + "个传感器名称：");
-			sensorName.add(scan.next());
+		for (int i = 0; i < sensor; i++){
+			scan = new Scanner(System.in);
+			System.out.println("请输入第" + (i + 1) + "个传感器名称：");			
+			sensorName.add(scan.nextLine());
 		}
 		
 		try{
@@ -145,41 +148,42 @@ public class sample {
 			//被dynamicCompile方法调用的方法，里面会调用parse method
 			out.write("\tpublic void main(String dbURL, String userName, String userPwd){\n");
 			out.write("\t\ttry{\n");
-			out.write("\t\tSimpleDateFormat spf = new SimpleDateFormat(\"yyyy:MM:dd hh:mm:ss\");\n");
-			out.write("\t\tString currentTime = spf.format(new Date().getTime());\n");
-			out.write("\t\tdbConn = DriverManager.getConnection(dbURL, userName, userPwd);\n");
-			out.write("\t\tStatement st = dbConn.createStatement();\n");
-			out.write("\t\tStatement st1 = dbConn.createStatement();\n");
-			out.write("\t\tString sql = \"SELECT Time \"\n");
-			out.write("\t\t		      + \"FROM source \"\n");
-			out.write("\t\t		      + \"WHERE ID = (SELECT MAX(ID) FROM source ORDER BY ID)\";\n");
-			out.write("\t\trt = st.executeQuery(sql);\n");
-			out.write("\t\tif(rt.next())\n");
-			out.write("\t\t\tcurrentTime = rt.getString(1);\n");
-			out.write("\t\tcurrentTime = currentTime.substring(0, currentTime.length() - 2);\n");
-			out.write("\t\twhile(true){\n");
-			out.write("\t\t\tsql = \"SELECT Time");
+			out.write("\t\t\tSimpleDateFormat spf = new SimpleDateFormat(\"yyyy:MM:dd hh:mm:ss\");\n");
+			out.write("\t\t\tString currentTime = spf.format(new Date().getTime());\n");
+			out.write("\t\t\tdbConn = DriverManager.getConnection(dbURL, userName, userPwd);\n");
+			out.write("\t\t\tStatement st = dbConn.createStatement();\n");
+			out.write("\t\t\tStatement st1 = dbConn.createStatement();\n");
+			out.write("\t\t\tString sql = \"SELECT Time \"\n");
+			out.write("\t\t\t		      + \"FROM " + sTableName + " \"\n");
+			out.write("\t\t\t		      + \"WHERE ID = (SELECT MAX(ID) FROM " + sTableName + " ORDER BY ID)\";\n");
+			out.write("\t\t\trt = st.executeQuery(sql);\n");
+			out.write("\t\t\tif(rt.next()){\n");
+			out.write("\t\t\t\tcurrentTime = rt.getString(1);\n");
+			out.write("\t\t\t\tcurrentTime = currentTime.substring(0, currentTime.length() - 2);\n");
+			out.write("\t\t\t}\n");
+			out.write("\t\t\twhile(true){\n");
+			out.write("\t\t\t\tsql = \"SELECT Time");
 			//--------------写入SQL查询的属性名称----------------------------------------------------
 			for (int i = 0; i < sensorName.size(); i++)
 				out.write(", S_" + sensorName.get(i));
 			out.write(" \"\n");
 			//--------------------------------------------------------------------------------------
 			
-			out.write("\t\t\t    + \"FROM " + sTableName + " \"\n");
-			out.write("\t\t\t    + \"WHERE TIME >= '\" + currentTime + \"'\";\n");
-			out.write("\t\t\trt = st.executeQuery(sql);\n");
-			out.write("\t\t\twhile(rt.next()){\n");
-			out.write("\t\t\t\tcurrentTime = rt.getString(1);\n");
-			out.write("\t\t\t\tcurrentTime = currentTime.substring(0, currentTime.length() - 2);\n");
+			out.write("\t\t\t\t    + \"FROM " + sTableName + " \"\n");
+			out.write("\t\t\t\t    + \"WHERE TIME > '\" + currentTime + \"' ORDER BY TIME\";\n");
+			out.write("\t\t\t\trt = st.executeQuery(sql);\n");
+			out.write("\t\t\t\twhile(rt.next()){\n");
+			out.write("\t\t\t\t\tcurrentTime = rt.getString(1);\n");
+			out.write("\t\t\t\t\tcurrentTime = currentTime.substring(0, currentTime.length() - 2);\n");
 			
 			//-------------写入parse判定健康状态后的返回值-------------------------------------------
-			out.write("\t\t\t\tInteger[] a = parse(rt.getInt(2)");//, rt.getInt(3));\n");
+			out.write("\t\t\t\t\tInteger[] a = parse(rt.getInt(2)");//, rt.getInt(3));\n");
 			for (int i = 0; i < sensorName.size() - 1; i++)
 				out.write(", rt.getInt(" + (i + 3) + ")");
 			out.write(");\n");
 			//--------------------------------------------------------------------------------------
 			//-------------写入SQL新增资料的属性名与数值---------------------------------------------
-			out.write("\t\t\t\tsql = \"insert into " + hTableName + " (Time");//, H_加速度, H_电流) values ('\" + currentTime + \"', '\" + a[0] + \"', '\" + a[1] + \"')\";\n");			
+			out.write("\t\t\t\t\tsql = \"insert into " + hTableName + " (Time");//, H_加速度, H_电流) values ('\" + currentTime + \"', '\" + a[0] + \"', '\" + a[1] + \"')\";\n");			
 			for (int i = 0; i < sensorName.size(); i++)
 				out.write(", H_" + sensorName.get(i));
 			out.write(") values ('\" + currentTime + \"'");
@@ -188,14 +192,14 @@ public class sample {
 			out.write(")\";\n");
 			///-------------------------------------------------------------------------------------
 			
-			out.write("\t\t\t\tst1.executeUpdate(sql);\n");
-			out.write("\t\t\t}\n");
-			out.write("\t\t\tSystem.out.println(currentTime);\n");
-			out.write("\t\t\tThread.sleep(10000);\n");
-			out.write("\t\t}\n");	
-			out.write("\t}catch(Exception e){\n");
-			out.write("\t\te.printStackTrace();\n");
-			out.write("\t}\n");
+			out.write("\t\t\t\t\tst1.executeUpdate(sql);\n");
+			out.write("\t\t\t\t}\n");
+			out.write("\t\t\t\tSystem.out.println(currentTime);\n");
+			out.write("\t\t\t\tThread.sleep(10000);\n");
+			out.write("\t\t\t}\n");	
+			out.write("\t\t}catch(Exception e){\n");
+			out.write("\t\t\te.printStackTrace();\n");
+			out.write("\t\t}\n");
 			out.write("\t}\n");			
 			
 			//写入判定方法至文本
@@ -207,13 +211,19 @@ public class sample {
 				first++;
 				a = (char)first;
 				output.add(String.valueOf(a));
-				out.write(", Integer " + a);				
-			}	
+				out.write(", Integer " + a);
+			}				
+			for (int i = 0; i < sensor; i++)
+				hmSensorName.put(sensorName.get(i), output.get(i));
 			out.write("){\n");
 			//------------------------------------------------------------------------------------------------------------------------------------
 			//-----------------------写入要被回传的参数--------------------------------------
+			/*
 			for (int i = 0; i < sensor; i++)			
 				out.write("\t\tint " + output.get(i) + output.get(i) + " = 0;\n");
+				*/
+			for (int i = 0; i < sensor; i++)			
+				out.write("\t\tArrayList<Integer> " + output.get(i) + output.get(i) + output.get(i) + " = new ArrayList<Integer>();\n");
 			out.write("\t\tInteger[] v = new Integer[" + sensor + "];\n");
 			//------------------------------------------------------------------------------
 			//--------------------将文本判断内容解析为java代码-------------------------------
@@ -223,12 +233,16 @@ public class sample {
 				String strTemp;
 				int Q = 0;
 				for (int j = 0; j < temp.length(); j++){
-					if (String.valueOf(temp.charAt(j)).equals("S")){						
-						value.add(output.get(Q));
-						while (!String.valueOf(temp.charAt(j)).equals(" ")){
+					if (String.valueOf(temp.charAt(j)).equals("_")){						
+						//value.add(output.get(Q));
+						String sTemp = "";						
+						j++;
+						while (!String.valueOf(temp.charAt(j)).equals(" ")){							
+							sTemp += temp.charAt(j);
 							j++;
 						}
-						Q++;
+						//Q++;
+						value.add(hmSensorName.get(sTemp));
 						value.add(String.valueOf(temp.charAt(j)));
 					}
 					else if (String.valueOf(temp.charAt(j)).equals("="))
@@ -250,7 +264,7 @@ public class sample {
 							j += 1;
 						}
 					}
-				}
+				}/*
 				if (i == 0){
 					out.write("\t\tif(");
 					for (int j = 0; j < value.size(); j++)
@@ -262,25 +276,52 @@ public class sample {
 					for (int j = 0; j <value.size(); j++)
 						out.write(value.get(j));
 					out.write("){\n");
-				}
+				}*/
+				
+				out.write("\t\tif(");
+				for (int j = 0; j < value.size(); j++)
+					out.write(value.get(j));
+				out.write("){\n");
+				
+				//-----------------------------处理then子句-----------------------------------------------------
 				value.clear();
 				temp = thenlist.get(i);
 				Q = 0;
-				for (int j = 0; j < temp.length(); j++)
-					if (String.valueOf(temp.charAt(j)).equals("0") || String.valueOf(temp.charAt(j)).equals("1"))
+				for (int j = 0; j < temp.length(); j++){
+					if (String.valueOf(temp.charAt(j)).equals("_")){
+						String sTemp = "";
+						j++;
+						while(!String.valueOf(temp.charAt(j)).equals(" ")){
+							sTemp += temp.charAt(j);
+							j++;
+						}
+						value.add(hmSensorName.get(sTemp));
+					}						
+					else if (String.valueOf(temp.charAt(j)).equals("0") || String.valueOf(temp.charAt(j)).equals("1") || String.valueOf(temp.charAt(j)).equals("2"))
 						value.add(String.valueOf(temp.charAt(j)));						
+				}
 				
-				
-				for (int j = 0; j < output.size(); j++)
-					out.write("\t\t\t" + output.get(j) + output.get(j) + " = " + value.get(j) + ";\n");
-				
+				for (int j = 0; j < value.size(); j++){
+					if (j%2 == 0)
+						out.write("\t\t\t" + value.get(j) + value.get(j) + value.get(j) + ".add(");
+					else 
+						out.write(value.get(j) + ");\n");
+				}
 				out.write("\t\t}\n");
 				value.clear();
 			}
 			
-			for (int i = 0; i < sensor; i++)
-				out.write("\t\tv[" + i + "] = " + output.get(i) + output.get(i) + ";\n");
-			
+			for (int i = 0; i < sensor; i++){
+				out.write("\t\tfor (int i = 0; i < " + output.get(i) + output.get(i) + output.get(i) + ".size(); i++){\n");
+				out.write("\t\t\tif(" + output.get(i) + output.get(i) + output.get(i) + ".get(i) == 0){\n");
+				out.write("\t\t\t\tv[" + i + "] = 0;\n");
+				out.write("\t\t\t\tbreak;\n");
+				out.write("\t\t\t}\n");
+				out.write("\t\t\telse\n");
+				out.write("\t\t\t\tv[" + i + "] = 1;\n");
+				out.write("\t\t}\n");
+			}
+				
 			out.write("\t\treturn v;\n");			
 			out.write("\t}\n");
 			out.write("}\n");
