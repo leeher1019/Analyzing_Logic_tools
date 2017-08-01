@@ -25,15 +25,15 @@ public class Parser{
 				currentTime = currentTime.substring(0, currentTime.length() - 2);
 			}
 			while(true){
-				sql = "SELECT Time, S_加速度, S_电流, S_上料 "
+				sql = "SELECT Time, S_加速度, S_电流, S_上料, S_光 "
 				    + "FROM unit1_status "
 				    + "WHERE TIME > '" + currentTime + "' ORDER BY TIME";
 				rt = st.executeQuery(sql);
 				while(rt.next()){
 					currentTime = rt.getString(1);
 					currentTime = currentTime.substring(0, currentTime.length() - 2);
-					Integer[] a = parse(rt.getInt(2), rt.getInt(3), rt.getInt(4));
-					sql = "insert into unit1_health (Time, H_加速度, H_电流, H_上料) values ('" + currentTime + "', '" + a[0] + "', '" + a[1] + "', '" + a[2] + "')";
+					Integer[] a = parse(rt.getInt(2), rt.getInt(3), rt.getInt(4), rt.getInt(5));
+					sql = "insert into unit1_health (Time, H_加速度, H_电流, H_上料, H_光) values ('" + currentTime + "', '" + a[0] + "', '" + a[1] + "', '" + a[2] + "', '" + a[3] + "')";
 					st1.executeUpdate(sql);
 				}
 				System.out.println(currentTime);
@@ -43,12 +43,13 @@ public class Parser{
 			e.printStackTrace();
 		}
 	}
-	public Integer[] parse(Integer A, Integer B, Integer C){
+	public Integer[] parse(Integer A, Integer B, Integer C, Integer D){
 		ArrayList<Integer> AAA = new ArrayList<Integer>();
 		ArrayList<Integer> BBB = new ArrayList<Integer>();
 		ArrayList<Integer> CCC = new ArrayList<Integer>();
-		Integer[] v = new Integer[3];
-		if(A ==1&&B ==1){
+		ArrayList<Integer> DDD = new ArrayList<Integer>();
+		Integer[] v = new Integer[4];
+		if(A ==1&&B ==0){
 			AAA.add(1);
 			BBB.add(0);
 		}
@@ -61,30 +62,59 @@ public class Parser{
 			BBB.add(1);
 			CCC.add(1);
 		}
-		for (int i = 0; i < AAA.size(); i++){
-			if(AAA.get(i) == 0){
-				v[0] = 0;
-				break;
-			}
-			else
-				v[0] = 1;
+		if(D ==1&&C ==1){
+			DDD.add(1);
+			CCC.add(1);
 		}
-		for (int i = 0; i < BBB.size(); i++){
-			if(BBB.get(i) == 0){
-				v[1] = 0;
-				break;
-			}
-			else
-				v[1] = 1;
+		if((D ==1||C ==1)&&A ==1){
+			DDD.add(1);
+			CCC.add(1);
+			AAA.add(1);
 		}
-		for (int i = 0; i < CCC.size(); i++){
-			if(CCC.get(i) == 0){
-				v[2] = 0;
-				break;
+		if (AAA.size() != 0)
+			for (int i = 0; i < AAA.size(); i++){
+				if(AAA.get(i) == 0){
+					v[0] = 0;
+					break;
+				}
+				else
+					v[0] = 1;
 			}
-			else
-				v[2] = 1;
-		}
+		else
+			v[0] = 1;
+		if (BBB.size() != 0)
+			for (int i = 0; i < BBB.size(); i++){
+				if(BBB.get(i) == 0){
+					v[1] = 0;
+					break;
+				}
+				else
+					v[1] = 1;
+			}
+		else
+			v[1] = 1;
+		if (CCC.size() != 0)
+			for (int i = 0; i < CCC.size(); i++){
+				if(CCC.get(i) == 0){
+					v[2] = 0;
+					break;
+				}
+				else
+					v[2] = 1;
+			}
+		else
+			v[2] = 1;
+		if (DDD.size() != 0)
+			for (int i = 0; i < DDD.size(); i++){
+				if(DDD.get(i) == 0){
+					v[3] = 0;
+					break;
+				}
+				else
+					v[3] = 1;
+			}
+		else
+			v[3] = 1;
 		return v;
 	}
 }

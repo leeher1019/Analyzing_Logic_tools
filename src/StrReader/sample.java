@@ -312,14 +312,17 @@ public class sample {
 			}
 			
 			for (int i = 0; i < sensor; i++){
-				out.write("\t\tfor (int i = 0; i < " + output.get(i) + output.get(i) + output.get(i) + ".size(); i++){\n");
-				out.write("\t\t\tif(" + output.get(i) + output.get(i) + output.get(i) + ".get(i) == 0){\n");
-				out.write("\t\t\t\tv[" + i + "] = 0;\n");
-				out.write("\t\t\t\tbreak;\n");
+				out.write("\t\tif (" + output.get(i) + output.get(i) + output.get(i) + ".size() != 0)\n");
+				out.write("\t\t\tfor (int i = 0; i < " + output.get(i) + output.get(i) + output.get(i) + ".size(); i++){\n");
+				out.write("\t\t\t\tif(" + output.get(i) + output.get(i) + output.get(i) + ".get(i) == 0){\n");
+				out.write("\t\t\t\t\tv[" + i + "] = 0;\n");
+				out.write("\t\t\t\t\tbreak;\n");
+				out.write("\t\t\t\t}\n");
+				out.write("\t\t\t\telse\n");
+				out.write("\t\t\t\t\tv[" + i + "] = 1;\n");
 				out.write("\t\t\t}\n");
-				out.write("\t\t\telse\n");
-				out.write("\t\t\t\tv[" + i + "] = 1;\n");
-				out.write("\t\t}\n");
+				out.write("\t\telse\n");
+				out.write("\t\t\tv[" + i + "] = 1;\n");
 			}
 				
 			out.write("\t\treturn v;\n");			
