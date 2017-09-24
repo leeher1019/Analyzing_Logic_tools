@@ -1,0 +1,2 @@
+﻿if F_vibrant = 0 and F_curr = 0 and F_ultrasound = 0 then status = 0;
+if F_vibrant = 1 and F_curr = 1 and F_ultrasound = 1 then status = 1;

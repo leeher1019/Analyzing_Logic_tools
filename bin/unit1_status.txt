@@ -1,0 +1,2 @@
+﻿if F_加速度 = 0 and F_电流 = 0 and F_超声波 = 0 then status = 0;
+if F_加速度 = 1 and F_电流 = 1 and F_超声波 = 1 then status = 1;

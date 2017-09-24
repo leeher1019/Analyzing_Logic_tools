@@ -1,0 +1,2 @@
+﻿if S_vibrant = 1 and S_curr = 1 then H_vibrant = 1, H_curr = 1;
+if S_vibrant = 1 or (S_curr = 1 and S_ultrasound = 0) then H_vibrant = 1, H_curr = 1, H_ultrasound = 1;
